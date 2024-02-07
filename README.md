@@ -32,6 +32,25 @@
 $ npm install
 ```
 
+## Databases setup
+
+```bash
+# configure .env
+$ cp .env.example .env
+
+# run local postres
+$ docker-compose up -d
+
+# generate prisma client
+$ npx prisma generate
+
+# run migrations
+$ npx prisma migrate dev
+
+# run db seed
+$ npx prisma db seed
+```
+
 ## Running the app
 
 ```bash
