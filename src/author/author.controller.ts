@@ -26,9 +26,7 @@ export class AuthorController {
 
   @Get()
   findAll(@Query() authorFiltersDto: AuthorFiltersDto) {
-    console.log(authorFiltersDto);
-
-    return 'This action returns all author';
+    return this.authorService.findAll(authorFiltersDto);
   }
 
   @Get(':id')
