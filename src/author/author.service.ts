@@ -5,6 +5,11 @@ import { PrismaService } from 'src/prisma.service';
 import { Author } from './entities/author.entity';
 import { PaginationResponse } from 'src/core/interfaces';
 import { AuthorFiltersDto } from './dto/author-filters-query.dto';
+import { Prisma } from '@prisma/client';
+import {
+  formAuthorOrderByFromQuery,
+  formAutrorWhereFromQuery,
+} from 'src/core/utils';
 
 @Injectable()
 export class AuthorService {
@@ -17,29 +22,33 @@ export class AuthorService {
   }
 
   async findAll(
-    authorFiltersDto: AuthorFiltersDto,
+    authorQueryDto: AuthorFiltersDto,
   ): Promise<PaginationResponse<Author>> {
-    const { perPage, page } = authorFiltersDto;
+    const { limit = 10, page = 1 } = authorQueryDto;
 
-    console.log(authorFiltersDto);
+    // The formAutrorWhereFromQuery and formAuthorOrderByFromQuery functions are used to form the where and orderBy options for the Prisma query
+    const where = formAutrorWhereFromQuery(authorQueryDto);
+    const orderBy = formAuthorOrderByFromQuery(authorQueryDto);
 
-    const totalCount = await this.prismaService.author.count({});
-    const totalPages = Math.ceil(totalCount / perPage);
-    const currentPage = Math.min(Math.max(page, 1), totalPages); // Ограничиваем текущую страницу в пределах от 1 до totalPages
+    const [totalCount, authors] = await Promise.all([
+      this.prismaService.author.count({ where }),
+      this.prismaService.author.findMany({
+        where,
+        orderBy,
+        take: limit,
+        skip: Math.max((page - 1) * limit, 0),
+      }),
+    ]);
 
-    const skip = (currentPage - 1) * perPage;
-
-    const authors = await this.prismaService.author.findMany({
-      skip,
-      take: perPage,
-    });
+    const totalPages = Math.ceil(totalCount / limit);
+    const currentPage = Math.min(Math.max(page, 1), totalPages);
 
     return {
       data: authors,
       totalPages,
       totalItems: totalCount,
       currentPage,
-      perPage: perPage,
+      limit,
     };
   }
 
