@@ -3,5 +3,5 @@ export interface PaginationResponse<T> {
   totalPages: number;
   totalItems: number;
   currentPage: number;
-  perPage: number;
+  limit: number;
 }
